@@ -1,10 +1,7 @@
-/* eslint-disable operator-linebreak */
-/* eslint-disable prefer-const */
-
-import { generate } from 'escodegen';
 // eslint-disable-next-line import/no-extraneous-dependencies
 import * as babelTypes from '@babel/types';
 import * as babel from '@babel/parser';
+import generate from '@babel/generator';
 import { log } from './log';
 
 import { ALIAS_AS_RELATIVE, ALIAS_AS_RESOLVABLE } from './common';
@@ -12,21 +9,32 @@ import { ALIAS_AS_RELATIVE, ALIAS_AS_RESOLVABLE } from './common';
 function isLiteral(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   node: any
-): node is babelTypes.StringLiteral | babelTypes.TemplateLiteral {
+): node is babelTypes.Literal {
   // TODO: this function is a lie and can probably be better
   // I was using babelTypes.isStringLiteral but that broke a bunch of tests
   return (
     node &&
-    (node.type === 'Literal' ||
+    (node.type === 'StringLiteral' ||
+      node.type === 'NumericLiteral' ||
+      node.type === 'BigIntLiteral' ||
+      node.type === 'BooleanLiteral' ||
+      node.type === 'NullLiteral' ||
+      node.type === 'RegExpLiteral' ||
       (node.type === 'TemplateLiteral' && node.expressions.length === 0))
   );
 }
 
-function getLiteralValue(
-  node: babelTypes.StringLiteral | babelTypes.TemplateLiteral
-) {
+function getLiteralValue(node: babelTypes.Literal) {
   if (node.type === 'TemplateLiteral') {
     return node.quasis[0].value.raw;
+  }
+
+  if (node.type === 'NullLiteral') {
+    throw new Error('Unexpected null in require expression');
+  }
+
+  if (node.type === 'RegExpLiteral') {
+    throw new Error('Unexpected regexp in require expression');
   }
 
   return node.value;
@@ -75,7 +83,7 @@ function reconstructSpecifiers(
 }
 
 function reconstruct(node: babelTypes.Node) {
-  let v = generate(node).replace(/\n/g, '');
+  let v = generate(node).code.replace(/\n/g, '');
   let v2;
 
   // eslint-disable-next-line no-constant-condition
@@ -468,7 +476,7 @@ function traverse(ast: babelTypes.File, visitor: VisitorFunction) {
 
   for (let i = 0; i < stack.length; i += 1) {
     const item = stack[i];
-    let [node] = item;
+    const [node] = item;
 
     if (node) {
       const trying = item[1] || babelTypes.isTryStatement(node);
@@ -496,7 +504,6 @@ export function parse(body: string) {
   return babel.parse(body, {
     allowImportExportEverywhere: true,
     allowReturnOutsideFunction: true,
-    plugins: ['estree', 'bigInt', 'classPrivateProperties', 'classProperties'],
   });
 }
 
