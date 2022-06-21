@@ -41,7 +41,7 @@
     "@types/is-core-module": "2.2.0",
     "@types/minimist": "1.2.2",
     "@types/multistream": "4.1.0",
-    "@types/node": "14.18.16",
+    "@types/node": "17.0.36",
     "@types/resolve": "1.20.2",
     "@types/stream-meter": "0.0.22",
     "@typescript-eslint/eslint-plugin": "4.33.0",
