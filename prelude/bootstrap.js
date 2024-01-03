@@ -85,7 +85,7 @@ if (process.env.PKG_EXECPATH === EXECPATH) {
   process.argv[1] = DEFAULT_ENTRYPOINT;
 }
 
-[, ENTRYPOINT] = process.argv;
+[, ENTRYPOINT = DEFAULT_ENTRYPOINT] = process.argv;
 delete process.env.PKG_EXECPATH;
 
 // /////////////////////////////////////////////////////////////////
@@ -588,7 +588,7 @@ function payloadFileSync(pointer) {
   process.pkg.path.resolve = function resolve() {
     const args = cloneArgs(arguments);
     args.unshift(path.dirname(ENTRYPOINT));
-    return path.resolve.apply(path, args); // eslint-disable-line prefer-spread
+    return path.resolve.apply(path, args);
   };
 })();
 
@@ -722,7 +722,6 @@ function payloadFileSync(pointer) {
     return fName;
   }
 
-  // eslint-disable-next-line prefer-arrow-callback
   const uncompressExternally = function uncompressExternally(dock) {
     if (!dock.externalFilename) {
       const snapshotFilename = dock.path;
@@ -737,7 +736,6 @@ function payloadFileSync(pointer) {
     return dock.externalFilename;
   };
 
-  // eslint-disable-next-line prefer-arrow-callback
   function uncompressExternallyPath(path_) {
     const entity = findVirtualFileSystemEntry(path_);
     const dock = { path: path_, entity, position: 0 };
@@ -750,7 +748,6 @@ function payloadFileSync(pointer) {
     return fd;
   }
 
-  // eslint-disable-next-line prefer-arrow-callback
   function openFromSnapshot(path_, uncompress, cb) {
     const cb2 = cb || rethrow;
     const entity = findVirtualFileSystemEntry(path_);
@@ -1422,6 +1419,8 @@ function payloadFileSync(pointer) {
     delete s.isSocketValue;
     delete s.isSymbolicLinkValue;
 
+    s.isBlockDevice = noop;
+    s.isCharacterDevice = noop;
     s.isFile = function isFile() {
       return isFileValue;
     };
@@ -1434,9 +1433,7 @@ function payloadFileSync(pointer) {
     s.isSymbolicLink = function isSymbolicLink() {
       return isSymbolicLinkValue;
     };
-    s.isFIFO = function isFIFO() {
-      return false;
-    };
+    s.isFIFO = noop;
 
     return s;
   }
@@ -1752,7 +1749,6 @@ function payloadFileSync(pointer) {
     return process.binding('fs').internalModuleStat(makeLong(fNative));
   }
 
-  // eslint-disable-next-line prefer-arrow-callback
   fs.internalModuleStat = function internalModuleStat(long) {
     // from node comments:
     // Used to speed up module loading. Returns 0 if the path refers to
@@ -1883,7 +1879,11 @@ function payloadFileSync(pointer) {
     im = require('internal/module');
     makeRequireFunction = im.makeRequireFunction;
   } else {
-    im = require('internal/modules/cjs/helpers');
+    if (NODE_VERSION_MAJOR <= 18) {
+      im = require('internal/modules/cjs/helpers');
+    } else {
+      im = require('internal/modules/helpers');
+    }
     makeRequireFunction = im.makeRequireFunction;
     // TODO esm modules along with cjs
   }

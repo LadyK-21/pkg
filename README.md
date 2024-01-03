@@ -1,8 +1,7 @@
-**Disclaimer: `pkg` was created for use within containers and is not intended for use in serverless environments. For those using Vercel, this means that there is no requirement to use `pkg` in your projects as the benefits it provides are not applicable to the platform.**
+# `pkg`
 
-![](https://res.cloudinary.com/zeit-inc/image/upload/v1509936789/repositories/pkg/pkg-repo-banner-new.png)
-
-[![Build Status](https://github.com/vercel/pkg/actions/workflows/ci.yml/badge.svg)](https://github.com/vercel/pkg/actions/workflows/ci.yml)
+> [!IMPORTANT]  
+> `pkg` has been deprecated with `5.8.1` as the last release. There are a number of successful forked versions of `pkg` already with various feature additions. Further, we’re excited about Node.js 21’s support for [single executable applications](https://nodejs.org/api/single-executable-applications.html). Thank you for the support and contributions over the years. The repository will remain open and archived.
 
 This command line interface enables you to package your Node.js project into an executable that can be run even on devices without Node.js installed.
 
@@ -44,6 +43,7 @@ pkg [options] <input>
     --public-packages    force specified packages to be considered public
     --no-bytecode        skip bytecode generation and include source files as plain js
     --no-native-build    skip native addons build
+    --no-signature       skip signature of the final executable on macos
     --no-dict            comma-separated list of packages names to ignore dictionaries. Use --no-dict * to disable all dictionaries
     -C, --compress       [default=None] compression algorithm = Brotli or GZip
 
@@ -54,9 +54,9 @@ pkg [options] <input>
   – Takes package.json from cwd and follows 'bin' entry
     $ pkg .
   – Makes executable for particular target machine
-    $ pkg -t node14-win-arm64 index.js
+    $ pkg -t node16-win-arm64 index.js
   – Makes executables for target machines of your choice
-    $ pkg -t node12-linux,node14-linux,node14-win index.js
+    $ pkg -t node16-linux,node18-linux,node16-win index.js
   – Bakes '--expose-gc' and '--max-heap-size=34' into executable
     $ pkg --options "expose-gc,max-heap-size=34" index.js
   – Consider packageA and packageB to be public
@@ -83,7 +83,7 @@ The entrypoint of your project is a mandatory CLI argument. It may be:
 `pkg` can generate executables for several target machines at a
 time. You can specify a comma-separated list of targets via `--targets`
 option. A canonical target consists of 3 elements, separated by
-dashes, for example `node12-macos-x64` or `node14-linux-arm64`:
+dashes, for example `node18-macos-x64` or `node14-linux-arm64`:
 
 - **nodeRange** (node8), node10, node12, node14, node16 or latest
 - **platform** alpine, linux, linuxstatic, win, macos, (freebsd)
